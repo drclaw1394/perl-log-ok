@@ -12,7 +12,7 @@ use Log::OK {
 
 sub do_module_stuff {
 	
-	print "TRace is: ". Log::OK::TRACE;
+	Log::OK::EMERGENCY and $log->emergency("Emergency");
 	Log::OK::ALERT and $log->fatal("Fatal");
 	Log::OK::ERROR and $log->error("Error");
 	Log::OK::WARN and  $log->warn("Warning");

@@ -1,11 +1,10 @@
 use strict;
 use warnings;
 
-use feature "say";
 
 Log::Any::Adapter->set("Log4perl");
 use Log::OK {
-	lvl=>4,
+	lvl=>"warning",
 	opt=>"verbose=s"
 };
 

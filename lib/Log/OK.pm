@@ -3,11 +3,12 @@ package Log::OK;
 use strict;
 use warnings;
 use version; our $VERSION=version->declare("v0.1.0");
-use feature "state";
+
 use Carp qw<croak>;
 use constant::more ();
 
 use constant DEBUG_=>0;		#Heh...
+
 use feature qw"say state";
 
 my %systems=(
@@ -79,8 +80,24 @@ sub log_any {
         DEBUG     => 7,
         TRACE     => 8,
     );
+	my $level;
+	for(uc($value)){
+		#test numeric
+		if(/\d/){
+			#assume number
+			$level=$_;
+			$level=0 if $level < 0;
+			$level=8 if $level > 8;
+		}
+		else{
+		
+			$level=$lookup{$_};	
+			#croak "Log::OK: unknown level \"$value\" for Log::Any" unless defined $level;
+			croak "Log::OK: unknown level \"$value\" for Log::Any. Valid options: ".join ', ', keys %lookup unless defined $level;
+		}
+	}
 
-        my $level=$lookup{uc $value}//int($value);
+	#my $level=$lookup{uc $value}//int($value);
 
         DEBUG_ and say "Level input $value";
         DEBUG_ and say "Level output $level";
@@ -118,8 +135,23 @@ sub log_ger {
 		debug   => 50,
 		trace   => 60,
 	);
+	my $level;
+	for(lc($value)){
+		#test numeric
+		if(/\d/){
+			#assume number
+			$level=$_;
+			$level=10 if $level < 10;
+			$level=60 if $level > 60;
+		}
+		else{
+		
+			$level=$lookup{$_};	
+			croak "Log::OK: unknown level \"$value\" for Log::ger. Valid options: ".join ', ', keys %lookup unless defined $level;
+		}
+	}
 
-    	my $level=$lookup{lc $value}//int($value);
+	#my $level=$lookup{lc $value}//int($value);
 	$acc+=$level;
 	(
 		#TODO: these values don't work well with 
@@ -132,7 +164,7 @@ sub log_ger {
 		"Log::OK::DEBUG"=>$level>=50,
 		"Log::OK::TRACE"=>$level>=60,
 
-		"Log::OK::LEVEL"=>$value
+		"Log::OK::LEVEL"=>$level
 	)
 
 }
@@ -157,8 +189,23 @@ sub log_dispatch {
 		crit=>5,
 		emerg=>7
 	);
+	my $level;
+	for(lc($value)){
+		#test numeric
+		if(/\d/){
+			#assume number
+			$level=$_;
+			$level=0 if $level < 0;
+			$level=7 if $level > 7;
+		}
+		else{
+		
+			$level=$lookup{$_};	
+			croak "Log::OK: unknown level \"$value\" for Log::Dispatch. Valid options: ".join ', ', keys %lookup unless defined $level;
+		}
+	}
 
-    	my $level=$lookup{lc $value}//int($value);
+	#my $level=$lookup{lc $value}//int($value);
 
 
 	$acc+=$level;
@@ -176,7 +223,7 @@ sub log_dispatch {
 		"Log::OK::INFO"=>$level<=1,
 		"Log::OK::DEBUG"=>$level<=0,
 
-		"Log::OK::LEVEL"=>$value
+		"Log::OK::LEVEL"=>$level
 	)
 
 
@@ -198,11 +245,27 @@ sub log_log4perl {
 		FATAL => 50000,
 		OFF   => (2 ** 31) - 1
 	);
+	state @levels=( 0,5000,10000,20000,30000,40000,50000,(2**31)-1);
 
 	DEBUG_ and say "";
 	DEBUG_ and say "VALUE: $value";
+	my $level;
+	for(uc($value)){
+		#test numeric
+		if(/\d/){
+			#assume number
+			$level=$_;
+			croak "Log::OK: unknown level \"$value\" for Log::Log4perl" unless grep $level==$_, @levels;
 
-    	my $level=$lookup{uc $value}//int($value);
+		}
+		else{
+		
+			$level=$lookup{$_};	
+			croak "Log::OK: unknown level \"$value\" for Log::Dispatch. Valid options: ".join ', ', keys %lookup unless defined $level;
+		}
+	}
+
+	#my $level=$lookup{uc $value}//int($value);
 
 	DEBUG_ and say "LEVEL: $level";
 

@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 
-use feature "say";
 
 use Log::Dispatch;
 

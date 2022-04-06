@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 
-use feature "say";
 
 my $conf=q(
 	log4perl.rootLogger=DEBUG, A1
