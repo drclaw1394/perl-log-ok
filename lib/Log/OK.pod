@@ -1,0 +1,230 @@
+=head1 NAME
+
+Log::OK -  Disable logging statements from the command line
+
+=head1 SYNOPSIS
+
+=head2	Application
+
+Top level application sets up  adaptors/dispatchers/outputs like usual. Also sets the command line option to use in generating constants and the default level:
+
+	use strict;
+	use warnings;
+
+	use Log::Any::Adaptor;
+
+	Log::Any::Adaptor->set("Log4perl");
+
+	use Log::OK {
+		lvl=>4,
+		opt=>"verbose=i"
+	};
+
+	My_Module::do_module_stuff();
+
+
+=head2 Module
+
+In your module, bring in your logging framework.(Log::Any shown):
+
+	package My_Module;
+	use strict;
+	use warnings;
+
+	use Log::Any qw($log);
+
+
+Then bring in C<Log::OK>, configure it with a level (numerical or string level
+supported by the logger used). This will be set level unless it is changed
+outside the module.
+
+	use Log::OK {
+		lvl=>"warn"
+	};
+
+The constants generated will be named after the logging levels supported in
+your logging module, but upper-cased. Use a logical "and" with your logging
+statement for perl to optimise away disabled levels:
+
+	sub do_module_stuff {
+		Log::OK::EMERGENCY and $log->emergency("Emergency");
+		Log::OK::ALERT and $log->alert("Alert");
+		Log::OK::CRITICAL and $log->emergency("Critical");
+		Log::OK::ERROR and $log->emergency("Error");
+		Log::OK::WARN and $log->emergency("Warning");
+		Log::OK::NOTICE and $log->emergency("Notice");
+		Log::OK::INFO and $log->emergency("Info");
+		Log::OK::TRACE and $log->emergency("Trace");
+	}
+
+
+	1;
+
+
+=head2 Run the program
+
+The logging level and compile time constants are configured via the command
+line using the L<GetOpt::Long> options specification used:
+
+	perl my_app.pl --verbose error
+
+The output of the above  program/module/log level would be
+	
+	Emergency
+	Alert
+	Critical
+	Error
+	Warn
+
+
+Notice, Info and Trace will not be executed at runtime
+
+=head1 DESCRIPTION
+
+
+This module creates compile time constants representing the enabled levels of
+logging in your favourite logging module (e.g. Log::OK::DEBUG, Log::OK::TRACE,
+etc)
+
+When used in logical combination with a logging statement, it can completely
+remove the runtime overhead when the current logging level would not generate
+output.
+
+
+Modules can setup a default logging level, and the top level application
+override the logging level in either code, from the command line options,
+or an environment variable
+
+
+=over
+
+=item *
+
+Can remove runtime overhead of inactive logging statements completely
+
+=item *
+
+Doesn't implement logging features. Use your favourite logger
+
+=item *
+
+Attempts to detect your selected logging system automatically
+
+=item *
+
+Constants generated represent the logging levels of your logger. Not generic or
+one size fits all
+
+=item *
+
+Values of constants are configurable in code, command line and environment
+variables using L<constant::more> 
+
+
+=item *
+
+=back
+
+
+=head1 USAGE
+
+The constants generated are used in a logical "and" statement with your
+logging call:
+
+	Log::OK::DEBUG and $log->debug(...); #Log::Any;
+
+	Log::OK::TRACE and log_trace(...); #Log::ger;
+
+If the constant is true, the remainder of the statement will execute; If the
+constant is false, the statement will be optimised away at compile time,
+resulting in no runtime overhead.
+
+The constants generated are determined by the logging system selected/detected
+at the point of the C<use Log::OK> pragma.
+
+The pragma takes a single hash ref argument:
+
+	use Log::OK {
+		opt=>$get_opt_long_spec,
+		env=>$env_var_name,
+		lvl=>$defualt_level,
+		sys=>$logging_system,
+		
+	};
+
+with the following optional keys:
+
+
+=head3 lvl
+
+This is the log level to set the logging system to if no command line options
+or environment variables are found or specified. The actual value can be a
+numeric or string value, but must be a valid value for the logging system used.
+
+=head3 opt
+
+If this option is specified, it represents a L<GetOpt::Long> option
+specification of the command line argument to set the logging level.  If it was
+set to C<opt=\gt"verbose=s">, the logging level will be set to "debug" with the
+following:
+
+		perl my_app.pl --verbose debug
+
+=head3 env
+
+The name of the environment variable to use to set the logging level if an
+command line option was not specified or not found. For example setting to
+C<env=\gt"MY_VAR">  the logging level could be set to "trace" with:
+
+		MY_VAR=trace perl my_app.pl
+
+	
+=head3 sys
+
+This informs C<Log::OK> of the logging system in use, instead of an attempt to
+detect it automatically.  It is a string value of the package name of the
+logging system.
+
+		sys=>"Log::ger"
+
+This would force the constant generation with the names of logging levels
+supported by C<Log::ger>
+
+
+=head2 Constant Naming 
+
+The names of the constants generated are specific to the logging system used.
+The names are the same as the logging levels, but are converted to uppercase in
+the normal constant style. If the logging system has aliases to levels these
+are also used to generate constants
+
+=head2 Import Precedence 
+
+For autodetection to work, the logging framework (producer or consumer) should
+be imported before C<Log::OK>
+
+	use Log::Any;
+	#configure log any
+
+	use Log::OK {...}
+
+
+Constants are only defined once in a first come first serve basis. So this
+means to override the logging levels of a required module, C<use Log::OK> will
+need to appear before any modules used:
+
+	use Log::OK {..}
+
+	use My::Fancy::Module;
+
+=head2 Extracing log level
+
+The log level used to create the constants, is accessible via
+C<Log::OK::LEVEL>. It is a string representation of the log level in the
+detected logging framework.
+
+As C<Log::OK> doesn't interfere with your logging setup, use this value to set
+the logging level in your logger;
+
+
+	

@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Log-OK.t
+lib/Log/OK.pm
