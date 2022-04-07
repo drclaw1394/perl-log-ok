@@ -6,8 +6,8 @@ use Log::ger::Output "Screen";
 use Log::ger::Util;
 
 use Log::OK {
-	lvl=>"info",
-	opt=>"verbose=s"
+	lvl=>"fatal",
+	opt=>"verbose"
 };
 
 Log::ger::Util::set_level(Log::OK::LEVEL);

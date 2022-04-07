@@ -17,7 +17,6 @@ Log::Log4perl::init(\$conf);
 
 
 use Log::OK {
-	lvl=>"error",
 	opt=>"verbose=s"
 };
 

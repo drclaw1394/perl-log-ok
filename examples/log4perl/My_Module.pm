@@ -7,7 +7,6 @@ use Log::Log4perl;
 my $log=Log::Log4perl->get_logger;
 
 use Log::OK {
-	lvl=>"info"
 };
 
 

@@ -4,8 +4,8 @@ use warnings;
 
 Log::Any::Adapter->set("Log4perl");
 use Log::OK {
-	lvl=>"warning",
-	opt=>"verbose=s"
+	lvl=>"emergency",
+	opt=>"verbose"
 };
 
 

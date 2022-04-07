@@ -6,14 +6,17 @@ Log::OK -  Disable logging statements from the command line
 
 =head2	Application
 
-Top level application sets up  adaptors/dispatchers/outputs like usual. Also sets the command line option to use in generating constants and the default level:
+Top level application sets up your adaptor/dispatchers/output like usual using
+your logging framework. 
 
 	use strict;
 	use warnings;
 
 	use Log::Any::Adaptor;
-
 	Log::Any::Adaptor->set("Log4perl");
+
+Then C<use Log::OK>  to setup a default logging level and specify a command
+line argument (or environment variable) to set logging level:
 
 	use Log::OK {
 		lvl=>4,
@@ -34,9 +37,8 @@ In your module, bring in your logging framework.(Log::Any shown):
 	use Log::Any qw($log);
 
 
-Then bring in C<Log::OK>, configure it with a level (numerical or string level
-supported by the logger used). This will be set level unless it is changed
-outside the module.
+Then bring in C<Log::OK>, configure it with a default level. This will be used
+if the  top level script didn't define one
 
 	use Log::OK {
 		lvl=>"warn"
@@ -56,7 +58,6 @@ statement for perl to optimise away disabled levels:
 		Log::OK::INFO and $log->emergency("Info");
 		Log::OK::TRACE and $log->emergency("Trace");
 	}
-
 
 	1;
 
@@ -81,52 +82,69 @@ Notice, Info and Trace will not be executed at runtime
 
 =head1 DESCRIPTION
 
+This module is not a logger. Instead it creates compile time constants/flags
+for each level of logging supported in your favourite logging module. The value
+of the constants is true or false, depending on the logging level setup.
 
-This module creates compile time constants representing the enabled levels of
-logging in your favourite logging module (e.g. Log::OK::DEBUG, Log::OK::TRACE,
-etc)
+For example if the logging system was L<Log::ger>, and the logging level was
+set to "info", the constants generated would be:
 
+	Log::OK::FATAL 	= 1;
+	Log::OK::ERROR 	= 1;
+	Log::OK::WARN 	= 1;
+	Log::OK::INFO 	= 1;
+	Log::OK::DEBUG 	= undef;
+	Log::OK::TRACE 	= undef;
+
+
+The logging systems supported are L<Log::Any>, L<Log::ger>, L<Log::Dispatch>
+and L<Log::Log4perl>. These systems can be autodetected and the constants
+generated are named according to their logging levels 
+
+
+The idea is to have a straight forward and independent method of completely
+disabling inactive logging statements to improve program performance but having
+support to adjust the logging level from command line arguments or environment
+variables.
+
+=head2 Command line processing of logging level
+
+Command line arguments are processed via L<GetOpt::Long> via L<constant::more>,
+and remain available for your application to also process from C<@ARGV>.
+
+If the C<opt> field is not defined, then command line processing is not
+enabled, and L<GetOpt::Long> is not loaded.
+
+If the C<opt> field is defined, any matching command line argument that matches
+will be used to set the logging level. The value used must be the name of a
+supported logging level in your logging system.
+
+
+=head2 Environment Variable processing of logging level
+
+If the C<env> field is defined, then the value is then name of the environment
+variable which contains the logging level to use.
+
+
+=head2 Code declared logging level
+
+
+If command line processing and enironment variable processing didn't set a
+logging level, then the value set by the field C<lvl> will be used.
+
+If this field is not present or undefined, the logging level will be set to the
+lowest supported by the detected logging system
+
+=head1 USAGE
 When used in logical combination with a logging statement, it can completely
 remove the runtime overhead when the current logging level would not generate
 output.
 
 
-Modules can setup a default logging level, and the top level application
-override the logging level in either code, from the command line options,
-or an environment variable
+	Log::OK::ERROR and log_error(...);	#This will execute
 
-
-=over
-
-=item *
-
-Can remove runtime overhead of inactive logging statements completely
-
-=item *
-
-Doesn't implement logging features. Use your favourite logger
-
-=item *
-
-Attempts to detect your selected logging system automatically
-
-=item *
-
-Constants generated represent the logging levels of your logger. Not generic or
-one size fits all
-
-=item *
-
-Values of constants are configurable in code, command line and environment
-variables using L<constant::more> 
-
-
-=item *
-
-=back
-
-
-=head1 USAGE
+	Log::OK::DEBUG and log_debug(...);	#This is optimised away 
+						#and has no runtime overhead
 
 The constants generated are used in a logical "and" statement with your
 logging call:
@@ -226,5 +244,9 @@ detected logging framework.
 As C<Log::OK> doesn't interfere with your logging setup, use this value to set
 the logging level in your logger;
 
+=head2 Error Reporting
+
+If the logging level attempting to be set is not supported by the logging
+system detected, croak is called with a list of supported level names
 
 	

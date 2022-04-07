@@ -61,13 +61,11 @@ sub auto_detect {
 
 	#otherwise fallback to log any
 	\&log_any;
-	#\&log_log4perl;	
 }
 
 sub log_any {
         DEBUG_ and say "setup for Log::Any";
         my ($opt, $value)=@_;
-        state $acc;
         state %lookup= (
 
         EMERGENCY => 0,
@@ -80,31 +78,26 @@ sub log_any {
         DEBUG     => 7,
         TRACE     => 8,
     );
-	my $level;
+	state $level=0;	
+	$value//="EMERGENCY"; #Default if undefined
 	for(uc($value)){
-		#test numeric
+		#test numeric. Should only be used for incremental 
 		if(/\d/){
 			#assume number
-			$level=$_;
-			$level=0 if $level < 0;
-			$level=8 if $level > 8;
+			$level+=$_;
+			$level=0 if $level< 0;
+			$level=8 if $level> 8;
+			say "Level: $level";
 		}
 		else{
 		
 			$level=$lookup{$_};	
-			#croak "Log::OK: unknown level \"$value\" for Log::Any" unless defined $level;
 			croak "Log::OK: unknown level \"$value\" for Log::Any. Valid options: ".join ', ', keys %lookup unless defined $level;
 		}
 	}
 
-	#my $level=$lookup{uc $value}//int($value);
-
         DEBUG_ and say "Level input $value";
         DEBUG_ and say "Level output $level";
-
-        $acc+=$level;
-
-        #print "Calling sub for $caller \n";
 
         (
                 #Contants to define
@@ -126,7 +119,6 @@ sub log_ger {
 	
 	DEBUG_ and say "setup for Log::ger";
 	my ($opt, $value)=@_;
-	state $acc;
 	state %lookup=(
 		fatal   => 10,
 		error   => 20,
@@ -135,24 +127,23 @@ sub log_ger {
 		debug   => 50,
 		trace   => 60,
 	);
-	my $level;
+	state $level=10;
+	$value//="fatal"; #Default if undefined
 	for(lc($value)){
 		#test numeric
 		if(/\d/){
 			#assume number
-			$level=$_;
+			$level+=$_*10;
 			$level=10 if $level < 10;
 			$level=60 if $level > 60;
 		}
 		else{
-		
 			$level=$lookup{$_};	
 			croak "Log::OK: unknown level \"$value\" for Log::ger. Valid options: ".join ', ', keys %lookup unless defined $level;
 		}
 	}
 
 	#my $level=$lookup{lc $value}//int($value);
-	$acc+=$level;
 	(
 		#TODO: these values don't work well with 
 		#incremental logging levels from the command line
@@ -172,7 +163,6 @@ sub log_ger {
 sub log_dispatch {
 	DEBUG_ and say "setup for Log::Dispatch";
 	my ($opt, $value)=@_;
-	state $acc;
 	state %lookup=(
 		debug=>0,
 		info=>1,
@@ -189,12 +179,13 @@ sub log_dispatch {
 		crit=>5,
 		emerg=>7
 	);
-	my $level;
+	state $level;
+	$value//="emergency"; #Default if undefined
 	for(lc($value)){
 		#test numeric
 		if(/\d/){
 			#assume number
-			$level=$_;
+			$level+=$_;
 			$level=0 if $level < 0;
 			$level=7 if $level > 7;
 		}
@@ -208,7 +199,6 @@ sub log_dispatch {
 	#my $level=$lookup{lc $value}//int($value);
 
 
-	$acc+=$level;
 
 	(
 		#TODO: these values don't work well with 
@@ -233,7 +223,6 @@ sub log_log4perl {
 	DEBUG_ and say "setup for Log::Log4perl";
 
 	my ($opt, $value)=@_;
-	state $acc;
 	state %lookup=(
 
 		ALL   => 0,
@@ -250,11 +239,17 @@ sub log_log4perl {
 	DEBUG_ and say "";
 	DEBUG_ and say "VALUE: $value";
 	my $level;
+	state $index=$#levels;
+
+	$value//="FATAL"; #Default if undefined
 	for(uc($value)){
 		#test numeric
 		if(/\d/){
 			#assume number
-			$level=$_;
+			$index-=$_;
+			$index=0 if $index< 0;
+			$index=$#levels if $index > $#levels;
+			$level=$levels[$index];
 			croak "Log::OK: unknown level \"$value\" for Log::Log4perl" unless grep $level==$_, @levels;
 
 		}
@@ -269,7 +264,6 @@ sub log_log4perl {
 
 	DEBUG_ and say "LEVEL: $level";
 
-	$acc+=$level;
 	(
 		#TODO: these values don't work well with 
 		#incremental logging levels from the command line
