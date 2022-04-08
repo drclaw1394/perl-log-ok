@@ -10,7 +10,7 @@ use Log::OK {
 
 
 my $conf=q(
-	log4perl.rootLogger=DEBUG, A1
+	log4perl.rootLogger=TRACE, A1
 	log4perl.appender.A1=Log::Log4perl::Appender::Screen
 	log4perl.appender.A1.layout=PatternLayout
 	log4perl.appender.A1.layout.ConversionPattern=%d %-5p %c - %m%n

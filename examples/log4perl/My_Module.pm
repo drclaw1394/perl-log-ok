@@ -6,8 +6,7 @@ use warnings;
 use Log::Log4perl;
 my $log=Log::Log4perl->get_logger;
 
-use Log::OK {
-};
+use Log::OK;
 
 
 sub do_module_stuff {

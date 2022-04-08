@@ -6,7 +6,7 @@ use Log::Dispatch;
 
 use Log::OK {
 	lvl=>"alert",
-	opt=>"verbose=s"
+	opt=>"verbose"
 };
 
 $GLOBAL::logger=Log::Dispatch->new(

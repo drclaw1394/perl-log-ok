@@ -25,6 +25,8 @@ sub import {
 	my $p=shift;
 	my $hr=shift;
 
+	return unless $hr;
+
 	my $caller=caller;
 	
 	my $sub;
@@ -42,7 +44,7 @@ sub import {
 			logging=>{
 
 				val=>$hr->{lvl},
-				opt=>$hr->{opt},
+				opt=>$hr->{opt}?$hr->{opt}.":s" : undef,
 				env=>$hr->{env},
 				sys=>$hr->{sys},
 				sub=>$sub,
@@ -80,6 +82,7 @@ sub log_any {
     );
 	state $level=0;	
 	$value//="EMERGENCY"; #Default if undefined
+	$value=1 if $value eq "" or $value eq 0;
 	for(uc($value)){
 		#test numeric. Should only be used for incremental 
 		if(/\d/){
@@ -87,7 +90,6 @@ sub log_any {
 			$level+=$_;
 			$level=0 if $level< 0;
 			$level=8 if $level> 8;
-			say "Level: $level";
 		}
 		else{
 		
@@ -129,6 +131,7 @@ sub log_ger {
 	);
 	state $level=10;
 	$value//="fatal"; #Default if undefined
+	$value=1 if $value eq "" or $value eq 0;
 	for(lc($value)){
 		#test numeric
 		if(/\d/){
@@ -181,11 +184,12 @@ sub log_dispatch {
 	);
 	state $level;
 	$value//="emergency"; #Default if undefined
+	$value=1 if $value eq "" or $value eq 0;
 	for(lc($value)){
 		#test numeric
 		if(/\d/){
 			#assume number
-			$level+=$_;
+			$level-=$_;
 			$level=0 if $level < 0;
 			$level=7 if $level > 7;
 		}
@@ -234,6 +238,7 @@ sub log_log4perl {
 		FATAL => 50000,
 		OFF   => (2 ** 31) - 1
 	);
+
 	state @levels=( 0,5000,10000,20000,30000,40000,50000,(2**31)-1);
 
 	DEBUG_ and say "";
@@ -242,6 +247,8 @@ sub log_log4perl {
 	state $index=$#levels;
 
 	$value//="FATAL"; #Default if undefined
+	$value=1 if $value eq "" or $value eq 0;
+
 	for(uc($value)){
 		#test numeric
 		if(/\d/){
@@ -254,9 +261,10 @@ sub log_log4perl {
 
 		}
 		else{
-		
 			$level=$lookup{$_};	
+
 			croak "Log::OK: unknown level \"$value\" for Log::Dispatch. Valid options: ".join ', ', keys %lookup unless defined $level;
+			($index)=grep $levels[$_]==$level, 0..$#levels;
 		}
 	}
 
