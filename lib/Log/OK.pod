@@ -160,11 +160,11 @@ default.
 =head3 opt
 
 Represents a L<GetOpt::Long> option name to use in processing the command line
-options.  It has a C<":s"> appended to it to allow L<GetOpt::Long> to
-process just a switch or a switch with a value.
+options.  It has a C<":s"> appended to it to allow L<GetOpt::Long> to process
+just a switch or a switch with a value.
 
-For example if C<opt=\gt"verbose=s">, the logging level will be set to "debug"
-with the following:
+For example if C<opt=E<gt>"verbose=s">, the logging level will be set to
+"debug" with the following:
 
 		perl my_app.pl --verbose debug
 
@@ -188,7 +188,7 @@ printed with a croak call
 =head3 env
 
 The name of the environment variable to use to set the logging level. For
-example setting to C<env=\gt"MY_VAR">  the logging level could be set to
+example setting to C<env=E<gt>"MY_VAR">  the logging level could be set to
 "trace" with:
 
 		MY_VAR=trace perl my_app.pl
