@@ -14,7 +14,7 @@ use feature qw"say state";
 my %systems=(
 	"Log::Any"=>\&log_any,
 	"Log::ger"=>\&log_ger,
-	"Log::log4perl"=>\&log_log4perl,
+	"Log::Log4perl"=>\&log_log4perl,
 	"Log::Dispatch"=>\&log_dispatch
 );
 
@@ -74,9 +74,12 @@ sub log_any {
         ALERT     => 1,
         CRITICAL  => 2,
         ERROR     => 3,
+	ERR	  => 3,
         WARNING   => 4,
+        WARN      => 4,
         NOTICE    => 5,
         INFO      => 6,
+        INFORM    => 6,
         DEBUG     => 7,
         TRACE     => 8,
     );
@@ -107,9 +110,12 @@ sub log_any {
                 "Log::OK::ALERT"=>$level>=1,
                 "Log::OK::CRITICAL"=>$level>=2,
                 "Log::OK::ERROR"=>$level>=3,
+                "Log::OK::ERR"=>$level>=3,
+                "Log::OK::WARNING"=>$level>=4,
                 "Log::OK::WARN"=>$level>=4,
                 "Log::OK::NOTICE"=>$level>=5,
                 "Log::OK::INFO"=>$level>=6,
+                "Log::OK::INFORM"=>$level>=6,
                 "Log::OK::DEBUG"=>$level>=7,
                 "Log::OK::TRACE"=>$level>=8,
 
@@ -209,9 +215,13 @@ sub log_dispatch {
 		#incremental logging levels from the command line
 
 		"Log::OK::EMERGENCY"=>$level<=7,
+		"Log::OK::EMERG"=>$level<=7,
 		"Log::OK::ALERT"=>$level<=6,
 		"Log::OK::CRITICAL"=>$level<=5,
+		"Log::OK::CRIT"=>$level<=5,
 		"Log::OK::ERROR"=>$level<=4,
+		"Log::OK::ERR"=>$level<=4,
+		"Log::OK::WARNING"=>$level<=3,
 		"Log::OK::WARN"=>$level<=3,
 		"Log::OK::NOTICE"=>$level<=2,
 		"Log::OK::INFO"=>$level<=1,
