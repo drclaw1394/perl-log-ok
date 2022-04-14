@@ -8,6 +8,7 @@ WriteMakefile(
 	ABSTRACT_FROM     => 'lib/Log/OK.pod', # retrieve abstract from module
 	AUTHOR            => 'Ruben Westerberg <drclaw@mac.com>',
 	LICENSE           => 'mit',
+	MIN_PERL_VERSION => "v5.24",
 	META_ADD => {
 		"meta-spec" => {
 			version => 2

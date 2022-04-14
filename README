@@ -4,13 +4,13 @@ NAME
 SYNOPSIS
   Application
     Setup your adaptor/dispatchers/output like usual using your logging
-    framework. (1)
+    framework (Log::Any and Log::Log4perl shown). (1)
 
-    Then "use Log::OK" to setup a default logging level and specify a
+    Then "use Log::OK" to setup a default logging level and/or specify a
     command line option (or environment variable) to set logging level. (2)
 
     Optionally synchronise the logging level of your logger to that
-    configured by "Log::OK" :
+    configured by "Log::OK":
 
             use strict;
             use warnings;
@@ -18,11 +18,12 @@ SYNOPSIS
             use Log::Any::Adaptor;                  #(1)
             Log::Any::Adaptor->set("Log4perl");
 
-
             use Log::OK {                           #(2)
                     lvl=>"info",
                     opt=>"verbose"
             };
+
+            #Logging level stored in Log::OK::LEVEL #(3)
 
             My_Module::do_module_stuff();
 
@@ -46,8 +47,6 @@ SYNOPSIS
 
             use Log::OK;            #(2)
 
-
-
             sub do_module_stuff {
                                     #(3)
 
@@ -69,7 +68,7 @@ SYNOPSIS
 
             perl my_app.pl --verbose error
 
-    The output of the above program/module/log level would be
+    The output of the above would be
 
             Emergency
             Alert
@@ -82,7 +81,8 @@ SYNOPSIS
 DESCRIPTION
     Log::OK creates compile time constants/flags for each level of logging
     supported in your selected logging framework. This module does not
-    implement logging features.
+    implement logging features, only constants to help enable/disable
+    logging efficiently.
 
     If your selected logging system was Log::ger, and the logging level was
     set to "info" for example, the constants generated would be:
@@ -98,20 +98,22 @@ DESCRIPTION
     in code, from the command line (set or increment) or an environment
     variable of your choosing.
 
-    The idea is to have an logger independent method of completely disabling
-    inactive logging statements to improve program performance.
+    The idea is to have a logger independent method of completely disabling
+    inactive logging statements to reduce runtime overhead.
 
     By using the generated constants/flags in the following fashion, perl
     will optimise away this entire statement when "Log::OK::DEBUG" is false
     for example:
 
-                    Log::OK::DEBUG and $log->emergency("Emergency");
+                    Log::OK::FATAL and log_fatal("Fatal");
 
   Supported Logging Modules
     The logging modules supported are Log::Any, Log::ger, Log::Dispatch and
     Log::Log4perl. These systems can be autodetected if they are imported
     before Log::OK. The constants generated are named according to the
     detected modules logging levels.
+
+    These modules are NOT dependencies of "Log::OK".
 
 USAGE
     The constants generated are determined by the logging system
@@ -122,10 +124,7 @@ USAGE
                     env=>$env_var_name,
                     lvl=>$defualt_level,
                     sys=>$logging_system,
-                
             };
-
-    The pragma takes a single hash ref argument:
 
   Hash keys
     All keys to the hash are optional and are detailed below:
@@ -133,17 +132,17 @@ USAGE
    lvl
     This is the base logging level. It may be modified by a command line
     option, or environment variable. It must be a string representing a
-    logging level of your chosen logging framework.
+    logging level in your chosen logging framework.
 
-    If the field is not supplied, then the lowest logging level is set as
-    the default.
+    If this field is not supplied, then the lowest logging level in your
+    selected logging module is set as the default (i.e Emergency, Trace...)
 
    opt
     Represents a GetOpt::Long option name to use in processing the command
     line options. It has a ":s" appended to it to allow GetOpt::Long to
     process just a switch or a switch with a value.
 
-    For example if "opt=\gt"verbose=s"", the logging level will be set to
+    For example if "opt=>'verbose'", the logging level will be set to
     "debug" with the following:
 
                     perl my_app.pl --verbose debug
@@ -158,30 +157,36 @@ USAGE
                     perl my_app.pl -v -v
 
                     #Set the logging level to info and then increase to the next level
-                    #perl my_app.pl -v info -v
+                    perl my_app.pl -v info -v
 
     If a invalid level is specified on the command line, a list of valid
     options is printed with a croak call
 
+    This is implemented using constant::more. Please refer to that module
+    for more implementation details.
+
    env
     The name of the environment variable to use to set the logging level.
-    For example setting to "env=\gt"MY_VAR"" the logging level could be set
-    to "trace" with:
+    For example setting to "env=>'MY_VAR'" the logging level could be set to
+    "trace" with:
 
                     MY_VAR=trace perl my_app.pl
 
+    This is implemented using constant::more. Please refer to that module
+    for more implementation details.
+
    sys
-    This informs "Log::OK" of the logging system in use, instead of an
-    attempt to detect it automatically. It is a string value of the package
-    name of the logging system. For example to force constants that relate
-    to "Log::ger":
+    This informs "Log::OK" of the logging system in use instead of an
+    attempting to detect it automatically. It is a string value of the
+    package name of the logging system. For example to force constants that
+    relate to "Log::ger":
 
                     sys=>"Log::ger"
 
   Constant Naming
     The names of the constants generated are specific to the logging system
-    used and are installed in the "Log::OK" namespace; The names are the
-    same as the logging levels, but are converted to uppercase in the normal
+    used and are installed in the "Log::OK" namespace. The names are the
+    same as the logging levels, but are converted to uppercase the usual
     constant style. If the logging system has aliases to levels these are
     also used to generate constants
 
@@ -200,47 +205,40 @@ USAGE
 
             use Log::OK {..}
 
-            use My::Fancy::Module;
+            use My::Fancy::Module; #module that uses Log::OK
 
-  Extraciting log level
+  Extraciting Log Level
     The log level used to create the constants is accessible via
     "Log::OK::LEVEL". It is a string representation of the log level in the
     detected logging framework.
 
-    As "Log::OK" doesn't interfere with your logging setup, use this value
-    to set the logging level in your logger:
+    As "Log::OK" doesn't interfere with your logging setup. As such, if you
+    would like to synchronise the levels in "Log::OK" and your logger, it
+    will need to be set manually in your logger:
 
-            #Log::Log4perl 
+            #Log::Log4perl for example
             $logger->level(Log::OK::LEVEL);
-
-    The other way is to process command line options in your script.
-    "Log::OK" does not consume the @ARGV when processing command line
-    arguments.
 
   Error Reporting
     If the logging level attempting to be set is not supported by the
     logging system detected, croak is called with a list of supported level
     names
 
-    When used in logical combination with a logging statement, it can
-    completely remove the runtime overhead when the current logging level
-    would not generate output.
+LIMITATIONS
+    Constants are treated as constants so, once they are defined, the value
+    remains the same for the program duration.
 
-            Log::OK::ERROR and log_error(...);      #This will execute
+    Also the incremental changing of the logging level from the command line
+    only increases the logging level
 
-            Log::OK::DEBUG and log_debug(...);      #This is optimised away 
-                                                    #and has no runtime overhead
+    Synchronising the logging level of your logging framework is easy in
+    some and not so easy in others. If you are missing log messages the
+    logger might be configured with a different logging level
 
-    The constants generated are used in a logical "and" statement with your
-    logging call:
+REPOSITOTY and BUGS
+    Please report and feature requests or bugs via the github repo:
 
-            Log::OK::DEBUG and $log->debug(...); #Log::Any;
-
-            Log::OK::TRACE and log_trace(...); #Log::ger;
-
-    If the constant is true, the remainder of the statement will execute; If
-    the constant is false, the statement will be optimised away at compile
-    time, resulting in no runtime overhead.
+    <https://github.com/drclaw1394/perl-log-ok.git>
 
 AUTHOR
     Ruben Westerberg, <drclaw@mac.com>
