@@ -1,5 +1,6 @@
-v0.1.6 2023-01-05
-
+v0.1.6 2023-02-11
+  [fixes]
+  - Remove annoying warning message re failed log level sync
   - Reworked automatic log level synchronisation for Log::ger when scripts are
     being required instead of used
   - Clean up changes file
