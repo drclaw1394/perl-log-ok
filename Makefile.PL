@@ -22,7 +22,7 @@ WriteMakefile(
 		},
 		bugtracker => {
 			web => 'https://github.com/drclaw1394/perl-log-ok/issues'
-         },
+    },
 	}
 
 );
