@@ -19,7 +19,10 @@ WriteMakefile(
 				url => "git://github.com/drclaw1394/perl-log-ok.git",
 				web => "http://github.com/drclaw1394/perl-log-ok",
 			}
-		}
+		},
+		bugtracker => {
+			web => 'https://github.com/drclaw1394/perl-log-ok/issues'
+         },
 	}
 
 );
